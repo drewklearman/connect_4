@@ -1,4 +1,8 @@
 import numpy as np
+import time
+import tkinter as tk
+
+from gui import Connect4GUI
 
 class board:
     #tested and works well
@@ -17,6 +21,9 @@ class board:
     
     def get_valid_moves(self):
         return [i for i in range(7) if self.heights[i] < 6]
+    
+    def get_heights(self):
+        return self.heights
         
         
     def place(self, col, player):
@@ -163,4 +170,50 @@ class board:
         score += self.score_player(1)
         score -= self.score_player(2)
         return score
+    
+
+class gamestate():
+    def __init__(self, strat1, strat2, verbose=True):
+        self.board = board(verbose)
+        self.turn = 1
+        self.verbose = verbose
+        self.strategies = [strat1, strat2]
+
+        root = tk.Tk()
+        app = Connect4GUI(root)
+        root.mainloop()
+
+        self.gui = app
+    
+    
+            
+    def play(self):
+        if self.verbose:
+            self.board.print_board()
+        while(self.board.check_win() == -1):  
+            if self.verbose:
+                time.sleep(2)
+            
+            move = self.strategies[self.turn-1](self.board, self.turn)
+            if self.verbose:
+                print('player', self.turn, 'plays column',move)
+            error_check = self.board.place(move, self.turn)
+            
+            if not error_check:
+                height = self.board.get_heights()[move] - 1
+                self.gui.draw_disc(move, height, self.turn)
+                self.turn = 1 + (self.turn % 2)
+                if self.verbose:
+                    self.board.print_board()
+          
+        winner = int(self.board.check_win())
+        if self.verbose:
+            if winner == 0:
+                print('game is a draw')   
+            else:
+                print("player", winner, "wins!")
+                
+        print(winner)
+        
+        return winner
         

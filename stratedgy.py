@@ -73,3 +73,9 @@ def retrieve_stratedgy(name, layers=4):
         return custom_minimax(layers)
     else:
         return -1
+
+
+def example():
+    return 1
+
+
