@@ -38,7 +38,7 @@ class gamestate():
         print(winner)
         
         return winner
-    
+
 
 def main():
     num_layers = 0
@@ -72,3 +72,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

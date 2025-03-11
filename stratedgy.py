@@ -46,6 +46,10 @@ def custom_minimax(layers):
                 for col in board.get_valid_moves():
                     copy = board.copy()
                     copy.place(col, player)
+                    a= depth - 1
+                    b = alpha
+                    c = beta
+                    d = 1 + (player % 2)
                     _, value = alg(copy, depth - 1, alpha, beta, 1 + (player % 2))
 
                     if value < opt_value:
@@ -59,7 +63,7 @@ def custom_minimax(layers):
 
                 return (opt_col, opt_value)
 
-        return alg(board, layers, -np.inf, np.inf, player)[0]
+        return alg(board, int(layers), -np.inf, np.inf, player)[0]
     
     return minimax
 
