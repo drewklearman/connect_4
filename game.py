@@ -6,14 +6,14 @@ class Connect4:
 
         self.row_count = 6 
         self.col_count = 7
+        self.wc = 4 #amount in a row needed to win
 
     def get_initial_state(self):
-        return np.zeros([self.row_count, self.col_count], dtype=np.uint8)
+        return np.zeros([self.row_count, self.col_count])
    
 
-
     def get_valid_moves(self, state):
-        return [i for i in range(self.col_count) if state[0][i] == 0]
+        return [state[0, i] == 0 for i in range(self.col_count)]
 
 
     def make_move(self, state, player, action):
@@ -24,67 +24,60 @@ class Connect4:
             raise "action is out of range"
 
         for i in reversed(range(self.row_count)):
-            if state[i][action] == 0:
-                state[i][action] == player
+            if state[i, action] == 0:
+                state[i, action] = player
                 return state
-
-        
-        
-    def place(self, col, player):
-        #-1 denotes error
-        #0 denotes move made
-        if col < 0 or col > 6:
-            return -1
-        elif self.heights[col] >5:
-            return -1
-        else:
-            self.board[5-self.heights[col]][col] = player
-            self.heights[col] += 1
-            return 0
         
             
     def print_board(self, state):
         print(f'  {" ".join([str(i) for i in range(self.col_count)])}')
         print('  ----------------')
-        print(state)
+        print(state.astype(int))
         print('  ----------------')
 
     
-    def check_win(self):
-        # -1 denotes no winner yet
-        # 0 denotes draw
-        # 1,2 denotes respective winners
+    def check_win(self, state, action) -> bool:
+        """True denotes a win, False means no winners"""
         
+        padded_rows = self.row_count + 2 * (self.wc - 1)
+        padded_cols = self.col_count + 2 * (self.wc - 1)
         
-        padded = np.zeros((12,13))
-        padded[3:9,3:10] = self.board
-        
-        for i in range(3,9):
-            for j in range(3,10):
-                player = padded[i][j]
-                
-                if player != 0:
-                    #check right
-                    if all([padded[i][j+x] == player for x in range(4)]):
-                        return player
-                    
-                    #check down
-                    if all([padded[i+x][j] == player for x in range(4)]):
-                        return player
-                    
-                    #check SE
-                    if all([padded[i+x][j+x] == player for x in range(4)]):
-                        return player
-                    
-                    #check SW
-                    if all([padded[i+x][j-x] == player for x in range(4)]):
-                        return player
-        
-        if min(self.heights) == 6:
-            return 0
-        
-                  
-        return -1
+        padded_state = np.zeros([padded_rows, padded_cols])
+        padded_state[self.wc - 1 : self.row_count + self.wc - 1, self.wc - 1 : self.col_count + self.wc - 1] = state
+
+        col = action + self.wc -1
+        row = None
+        player = None
+
+        for i in range(len(padded_state)):
+            if padded_state[i, col] != 0:
+                player = padded_state[i,col]
+                row = i
+                break
+
+        return (
+            np.sum(padded_state[row - self.wc + 1: row + 1, col]) == player * self.wc or #up
+            np.sum(padded_state[row : row + self.wc, col]) == player * self.wc or # down
+            np.sum(padded_state[row, col - self.wc + 1: col + 1]) == player * self.wc or # left
+            np.sum(padded_state[row, col : col + self.wc]) == player * self.wc or # right
+            np.sum([padded_state[row + i, col + i] for i in range(self.wc)]) == player * self.wc or # down right
+            np.sum([padded_state[row + i, col - i] for i in range(self.wc)]) == player * self.wc or # down left
+            np.sum([padded_state[row - i, col + i] for i in range(self.wc)]) == player * self.wc or # up right
+            np.sum([padded_state[row - i, col - i] for i in range(self.wc)]) == player * self.wc # up left
+        )
+
+
+    def get_value_and_terminated(self, state, action) -> (int, bool):
+        if self.check_win(state, action):
+            return 1, True
+        if not any(self.get_valid_moves(state)):
+            return 0, True
+        return 0, False
+
+
+    def get_opponent(self, player):
+        return player * -1
+    
     
     def score_player(self, player): # assumes no winners, which will be computed in the minimax alg
         
