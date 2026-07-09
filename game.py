@@ -40,33 +40,38 @@ class Connect4:
     
     def check_win(self, state, action) -> bool:
         """True denotes a win, False means no winners"""
-        
-        padded_rows = self.row_count + 2 * (self.wc - 1)
-        padded_cols = self.col_count + 2 * (self.wc - 1)
-        
-        padded_state = np.zeros([padded_rows, padded_cols])
-        padded_state[self.wc - 1 : self.row_count + self.wc - 1, self.wc - 1 : self.col_count + self.wc - 1] = state
 
-        col = action + self.wc -1
+        col = action
         row = None
         player = None
 
-        for i in range(len(padded_state)):
-            if padded_state[i, col] != 0:
-                player = padded_state[i,col]
+        # the last move is the topmost occupied cell in the played column
+        for i in range(self.row_count):
+            if state[i, col] != 0:
+                player = state[i, col]
                 row = i
                 break
 
-        return (
-            np.sum(padded_state[row - self.wc + 1: row + 1, col]) == player * self.wc or #up
-            np.sum(padded_state[row : row + self.wc, col]) == player * self.wc or # down
-            np.sum(padded_state[row, col - self.wc + 1: col + 1]) == player * self.wc or # left
-            np.sum(padded_state[row, col : col + self.wc]) == player * self.wc or # right
-            np.sum([padded_state[row + i, col + i] for i in range(self.wc)]) == player * self.wc or # down right
-            np.sum([padded_state[row + i, col - i] for i in range(self.wc)]) == player * self.wc or # down left
-            np.sum([padded_state[row - i, col + i] for i in range(self.wc)]) == player * self.wc or # up right
-            np.sum([padded_state[row - i, col - i] for i in range(self.wc)]) == player * self.wc # up left
-        )
+        if player is None:
+            return False
+
+        def count_dir(dr, dc):
+            """Count consecutive `player` cells starting one step away in (dr, dc)."""
+            count = 0
+            r, c = row + dr, col + dc
+            while 0 <= r < self.row_count and 0 <= c < self.col_count and state[r, c] == player:
+                count += 1
+                r += dr
+                c += dc
+            return count
+
+        # for each axis, span = the placed piece + the run on both sides
+        for dr, dc in ((1, 0), (0, 1), (1, 1), (1, -1)):
+            span = 1 + count_dir(dr, dc) + count_dir(-dr, -dc)
+            if span >= self.wc:
+                return True
+
+        return False
 
 
     def get_value_and_terminated(self, state, action) -> (int, bool):
