@@ -23,10 +23,12 @@ class Connect4:
         if action < 0 or action >= self.col_count:
             raise "action is out of range"
 
+        new_state = state.copy()
+
         for i in reversed(range(self.row_count)):
-            if state[i, action] == 0:
-                state[i, action] = player
-                return state
+            if new_state[i, action] == 0:
+                new_state[i, action] = player
+                return new_state
         
             
     def print_board(self, state):
