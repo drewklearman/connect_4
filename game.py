@@ -10,8 +10,8 @@ class Connect4:
 
     def get_initial_state(self):
         return np.zeros([self.row_count, self.col_count])
-   
 
+   
     def get_valid_moves(self, state):
         return [state[0, i] == 0 for i in range(self.col_count)]
 
@@ -84,6 +84,15 @@ class Connect4:
 
     def get_opponent(self, player):
         return player * -1
+
+    def get_encoded_state(self, state):
+        encoded = np.stack((
+            state == -1,
+            state == 0,
+            state == 1)
+        ).astype(np.float32)
+
+        return encoded
     
     
     def score_player(self, player): # assumes no winners, which will be computed in the minimax alg
