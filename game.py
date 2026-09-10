@@ -85,6 +85,9 @@ class Connect4:
     def get_opponent(self, player):
         return player * -1
 
+    def change_perspective(self, state):
+        return state * -1
+
     def get_encoded_state(self, state):
         encoded = np.stack((
             state == -1,
